@@ -1,0 +1,205 @@
+python 高级
+
+bin(18)#-->二进制
+oct(18)#-->八进制
+hex(18)#-->十六进制
+
+迭代：
+#判断是否迭代
+form collections import Iterable
+isinstance({},Iterable)
+
+a = [1,2,3]
+iter(a)#将迭代对象转化为迭代器
+
+闭包：
+
+def test(number):
+    print("-----1-----")
+
+    def test_in(number2):
+        print("----2-----")
+        print(number+number2)
+    print("------3-----")
+    return test_in
+
+resr = test(100)
+resr(100)
+
+
+装饰器：
+def w1(func):
+    def inner():
+        print("正在验证")
+        func()
+    return inner
+
+@w1
+def f1():
+    print("---1----")
+@w1
+def f2():
+    print("---2----")
+
+f1()
+f2()
+
+多个装饰器：
+def makeBold(fn):
+    def wrapped():
+        print("----1---")
+        return "<b>"+fn()+"</b>"
+    return wrapped
+
+def makeItalic(fn):
+    def wrapped():
+        print("----2---")
+        return "<i>"+fn()+"</i>"
+    return wrapped
+
+@makeBold
+@makeItalic
+def test3():
+    print("----3---")
+    return "helloworld"
+ret = test3();
+print (ret)
+
+带参数的装饰器
+def func(function):
+    print("---func-1--")
+    def func_in(*args,**kwargs):
+        print("---func_in-1--")
+        function(*args,**kwargs)
+        print("---func_in-2--")
+
+    print("---func-2--")
+    return func_in
+
+@func
+def test(a,b,c):
+    print("----test-a=%d,b=%d,c=%d"%(a,b,c))
+
+test(11,22,33)
+
+
+动态属性的添加：
+import types
+class Person:
+    def __init__(self,name,number):
+        self.name=name;
+        self.number = number
+
+def eat(self):
+    print("____%s"%self.name)
+
+
+p1 = Person("GUU",19)
+p1.eat=types.MethodType(eat,p1)
+p1.eat()
+
+__slots__("name")#限制类只有name属性    
+
+生成器：
+b = (x for x in range(10))
+
+方式2:
+def creatNUm():
+    a,b=0,1
+    for i in range(5):
+        yield b
+        a,b = b,a+b
+取值方式：
+a.__next__()
+next(a)
+
+metaclass = update#元类
+例如
+def upper_attr(future_class_name, future_class_parents, future_class_attr):
+
+    #遍历属性字典，把不是__开头的属性名字变为大写
+    newAttr = {}
+    for name,value in future_class_attr.items():
+        if not name.startswith("__"):
+            newAttr[name.upper()] = value
+
+    #调用type来创建一个类
+    return type(future_class_name, future_class_parents, newAttr)
+
+class Foo(object, metaclass=upper_attr):
+    bar = 'bip'
+
+print(hasattr(Foo, 'bar'))
+print(hasattr(Foo, 'BAR'))
+
+f = Foo()
+print(f.BAR)
+
+创建进程：
+import os
+import time
+
+ret = os.fork()
+if ret == 0:
+    while True:
+        print("-----1-----")
+        time.sleep(1)
+else:
+    while True:
+        print("-----2-----")
+        time.sleep(1)
+
+os.getpid()#获得进程的id
+os.getppid()#获得父进程的id
+
+Process创建子进程
+from multiprocessing import Process
+import os
+
+#子进程要执行的程序
+def run_proc(name):
+    print("子进程运行中，name=%s,pid=%d..."%(name,os.getpid()))
+
+if __name__=="__main__":
+    print("父进程 %d"%(os.getpid()))
+    p = Process(target=run_proc,args=("test",))
+    print("子进程执行")
+    p.start()
+    p.join()
+    print("子进程执行结束")
+
+通过Process子类创建进程
+from multiprocessing import Process
+import time
+
+class NewProcess(Process):
+    def run(self):
+        while True:
+            print("---1---")
+            time.sleep(1)
+
+p = NewProcess()
+p.start()
+while True:
+    print("---main---")
+    time.sleep(1)
+Pool池
+from multiprocessing import Pool
+import os
+import time
+
+def worker(num):
+    for i in range(5):
+        print("===pid=%d==num=%d="%(os.getpid(),num))
+        time.sleep(1)
+
+pool = Pool(3)
+
+for i in range(10):
+    print("---%d---"%i)
+
+    pool.apply_async(worker,(i,))
+
+pool.close()
+pool.join()
+
